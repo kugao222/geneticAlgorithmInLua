@@ -57,7 +57,7 @@ function t:ctor(count, geneBitCount,geneBitTypes,fitnessCaculate)
 end
 
 -- 生产下一代
-function t:epoch() -- func:打分函数
+function t:epoch(jumpOutFitnessLevel) -- func:打分函数
 	-- 1. crossover & 变异
 	local list = self.list
 	local count = #list
@@ -81,6 +81,16 @@ function t:epoch() -- func:打分函数
 	print("  ==>> maxFitness == "..self.maxFitness)
 	print("  ==>> fittnessEver == "..self.fittnessEver) -- 
 
+	if jumpOutFitnessLevel == nil then return false end
+
+	local maxFitness = self.maxFitness
+	print("maxFitness == "..maxFitness)
+	print("jumpOutFitnessLevel == "..jumpOutFitnessLevel)
+	if maxFitness >= jumpOutFitnessLevel then
+		return true
+	end
+	
+	return false
 	-- local curOne = listNewGeneration[self.maxFitnessIdx]
 	-- local geneBitList = curOne.geneBitList
 	-- dump(curOne.geneBitList, "-----geneBitList")
