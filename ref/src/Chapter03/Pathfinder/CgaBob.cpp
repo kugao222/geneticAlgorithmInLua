@@ -212,6 +212,9 @@ void CgaBob::UpdateFitnessScores()
 		TempMemory.ResetMemory();
 	
 	}//next genome
+
+	double aver = m_dTotalFitnessScore / ((float)m_iPopSize);
+	aver = aver;
 }
 
 //---------------------------Decode-------------------------------------

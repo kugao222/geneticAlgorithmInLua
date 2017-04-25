@@ -11,6 +11,11 @@ local table = _G.table
 
 ---------------
 function t:ctor(count, geneBitCount,geneBitTypes,fitnessCaculate)
+	--
+	--dump(os.time(), "------os.time()")
+	--math.randomseed(os.time())
+	math.randomseed(2)
+
 	-- 基因定义
 	self.geneBitCount = geneBitCount
 	self.geneBitTypes = geneBitTypes
@@ -76,7 +81,7 @@ function t:epoch(jumpOutFitnessLevel) -- func:打分函数
 	self:updateAllFitness()
 
 	--
-	print("------------------------------------------------------------")
+	--print("------------------------------------------------------------")
 	local function cut(vv)
 		return math.floor(vv*100)*0.01
 	end
@@ -87,7 +92,7 @@ function t:epoch(jumpOutFitnessLevel) -- func:打分函数
 	local maxFitness = self.maxFitness
 	--print("maxFitness == "..maxFitness)
 	if maxFitness >= jumpOutFitnessLevel then
-		print("jumpOutFitnessLevel == "..jumpOutFitnessLevel)
+		--print("jumpOutFitnessLevel == "..jumpOutFitnessLevel)
 		return true
 	end
 	
@@ -177,7 +182,7 @@ function t:selectOne()
 	local fittnessTotal = self.fittnessTotal
 		
 	-- 尺度适配, 扩大最大值的效益, 大的值比例会变大
-	local scale = 10
+	local scale = 1
 
 	-- 负值适配
 	local adjustN = function (v)
@@ -204,10 +209,10 @@ function t:selectOne()
 
 	-- 适配总和
 	fittnessTotal = adjustN(fittnessTotal)
-	local fittnessTotalUint = math.ceil(fittnessTotal)*100
+	local fittnessTotalUint = math.ceil(fittnessTotal*10000)
 
 	-- 随机数
-	local rn = util:rand(0,fittnessTotalUint)*0.01
+	local rn = util:rand(0,fittnessTotalUint)*0.0001
 
 	-- 轮盘
 	local list = self.list
@@ -235,12 +240,11 @@ function t:selectOne()
 		end
 
 		-- 查找范围
-		if rn >= accum and rn < accum+fitNessAdjust then
+		accum = accum + fitNessAdjust
+		if rn < accum then
 			theOneIdx = i
 			break
 		end
-
-		accum = accum + fitNessAdjust
 	end
 
 	-- 

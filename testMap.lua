@@ -7,18 +7,17 @@ local populationClass = gb.populationClass
 local math = _G.math
 
 -- 地图定义 --
-local width = 15
-local height = 10
-local map = 
-{
+-- local width = 15
+-- local height = 10
+local map = {
  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,},
  {1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1,},
- {8, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1,},
+ {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1,},
  {1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1,},
  {1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1,},
  {1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1,},
  {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1,},
- {1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5,},
+ {1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,},
  {1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1,},
  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,},
 };
@@ -59,13 +58,43 @@ local function isLocationValid(pos)
 	return  xx < 1
 end
 
+-- setColor
+local function setColor(pos, newMap)
+	local x = pos.x
+	local y = pos.y
+
+	local groundRow = newMap[y]
+	if not groundRow then return false end
+	
+	local xx = groundRow[x]
+	if not xx then return false end
+	groundRow[x] = '^'
+end
+
+-- color path
+local function colorPath(list, newMap)
+	local curPos = {x=posStart.x, y=posStart.y}
+	local farestPos = {x=posStart.x, y=posStart.y}
+	for i,v in ipairs(list) do
+		curPos = getNextPos(curPos, v)
+		if isLocationValid(curPos) then
+			farestPos.x = curPos.x
+			farestPos.y = curPos.y
+			setColor(farestPos, newMap)
+		else
+			curPos.x = farestPos.x-- 不合法则等于碰壁
+			curPos.y = farestPos.y
+		end
+	end
+end
+
 --
 local function main()
 	-- 群组个数
-	local populationSize = 150
+	local populationSize = 140
 
 	-- 基因定义(基因长度/bit的类型/适应性)
-	local geneBitCount = 70
+	local geneBitCount = 35
 	local geneBitTypes = {1,2,3,4} -- 上下左右
 	local function fitnessCaculate(geneBitList) -- geneBitList:70
 		local curPos = {x=posStart.x, y=posStart.y}
@@ -83,20 +112,30 @@ local function main()
 				break
 			end
 
-			if not isLocationValid(curPos) then
-				break
+			if isLocationValid(curPos) then
+				-- 合法的则往前走
+				farestPos.x = curPos.x
+				farestPos.y = curPos.y
+			else
+				curPos.x = farestPos.x-- 不合法则等于碰壁
+				curPos.y = farestPos.y
 			end
-			-- 合法的则往前走
-			farestPos.x = curPos.x
-			farestPos.y = curPos.y
 		end
 
 		local dx = math.abs(farestPos.x-posEnd.x)
 		local dy = math.abs(farestPos.y-posEnd.y)
-		--print("dx == "..dx)
-		--print("dy == "..dy)
 		if dx == 0 and dy == 0 then
-			dump(geneBitList, "-----geneBitList")
+			local newMap = clone(map)
+			colorPath(geneBitList, newMap)
+			--dump(map, "-----map")
+			for i,v in ipairs(newMap) do
+				local line = ""
+				for j,vv in ipairs(v) do
+					line = line .." "..vv
+				end
+				print(line)
+			end
+			print("------------------------------")
 		end
 		return 1/(dx+dy+1)
 	end
@@ -109,7 +148,7 @@ local function main()
 
 	--
 	local r = false
-	for i=1,10000 do
+	for i=1,500 do
 		r = population:epoch(jumpOutFitnessLevel)
 		if r then return end
 	end
