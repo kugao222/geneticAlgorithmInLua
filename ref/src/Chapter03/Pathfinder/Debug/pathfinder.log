@@ -1,0 +1,6 @@
+﻿  CgaBob.cpp
+CgaBob.cpp(39): warning C4018: “<”: 有符号/无符号不匹配
+CgaBob.cpp(80): warning C4018: “<”: 有符号/无符号不匹配
+CgaBob.cpp(228): warning C4018: “<”: 有符号/无符号不匹配
+  pathfinder.vcxproj -> D:\_LEARN\ann\src\Chapter03\Pathfinder\.\Debug\pathfinder.exe
+  pathfinder.vcxproj -> .\Debug\pathfinder.pdb (Full PDB)
