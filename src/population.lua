@@ -77,16 +77,17 @@ function t:epoch(jumpOutFitnessLevel) -- func:打分函数
 
 	--
 	print("------------------------------------------------------------")
-	print(" ==>> epoch finished ! generation == "..self.generation-1)
-	print("  ==>> maxFitness == "..self.maxFitness)
-	print("  ==>> fittnessEver == "..self.fittnessEver) -- 
+	local function cut(vv)
+		return math.floor(vv*100)*0.01
+	end
+	print("epoch finished! generation:"..(self.generation-1).." maxFitness:"..cut(self.maxFitness).." fittnessEver:"..cut(self.fittnessEver))
 
 	if jumpOutFitnessLevel == nil then return false end
 
 	local maxFitness = self.maxFitness
-	print("maxFitness == "..maxFitness)
-	print("jumpOutFitnessLevel == "..jumpOutFitnessLevel)
+	--print("maxFitness == "..maxFitness)
 	if maxFitness >= jumpOutFitnessLevel then
+		print("jumpOutFitnessLevel == "..jumpOutFitnessLevel)
 		return true
 	end
 	
