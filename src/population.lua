@@ -10,47 +10,41 @@ local math = _G.math
 local table = _G.table
 
 ---------------
-function t:ctor(count, geneBitCount,geneBitTypes,fitnessCaculate)
+function t:ctor(t)
 	--
 	--dump(os.time(), "------os.time()")
-	--math.randomseed(os.time())
-	math.randomseed(2)
+	math.randomseed(os.time())
+	--math.randomseed(2)
 
 	-- 基因定义
-	self.geneBitCount = geneBitCount
-	self.geneBitTypes = geneBitTypes
-	self.fitnessCaculate = fitnessCaculate
+	self.geneBitCount = t.geneBitCount
+	self.generateGeneBitFunc = t.generateGeneBitFunc
+	self.mutateGeneBitFunc = t.mutateGeneBitFunc
+	self.fitnessMeasurementFunc = t.fitnessMeasurementFunc
+	self.mutationRate = define.mutationRate; -- 变异率
 
-	-- 数组的形式
+	-- 群体管理
 	self.list = {}
-	self.maxFitnessIdx = 0
-	self.maxFitness = 0
-
-	-- 交配率
-	self.crossoverRate = define.crossoverRate; -- 70%
-	-- 变异率
-	self.mutationRate = define.mutationRate; -- 0.1%
-
 	-- 每一代
 	self.generation = 0; -- 从1开始.
-	-- 每一代最优
-	self.fittestGeneIdx = -1; -- 最新一代
+	-- 交配率
+	self.crossoverRate = define.crossoverRate; -- 70%
 	-- 适应性值总和
 	self.fittnessTotal = 0; -- 最高适应性
 	self.fittnessEver = 0; -- 表示群组的总和适应性
+	-- 每一代最优
+	self.maxFitnessIdx = 0 -- 最优单位
+	self.maxFitness = 0 -- 最优适应性
 
 	--
+	local count = t.population
+	self.count = count
 	print(" ==>> set population count : "..count)
-	--self.count = count
-
-	-- 基因定义
-	-- local geneBitCount = define.geneBitCount
-	-- local geneBitTypes = define.geneBitTypes
 
 	-- 创建基因群
 	local list = self.list
 	for i=1,count do
-		list[i] = geneClass:create(geneBitCount, geneBitTypes, self)
+		list[i] = geneClass:create(self)
 	end
 
 	-- 负值适配
@@ -108,7 +102,7 @@ function t:updateAllFitness()
 	local count = #list -- 总数
 	local accum = 0 -- 累计
 	local curFitness = 0 -- 当前适应值
-	--local func = self.fitnessCaculate
+	--local func = self.fitnessMeasurementFunc
 
 	-------------------------
 	local isHasN = false
@@ -272,6 +266,12 @@ function t:crossover(a,b)
 end
 
 -- 交换实现gene bits
+local function cloneGeneBit(a,b) --  a --> b
+	for i,v in ipairs(a) do
+		b[i] = v
+	end
+end
+--
 function t:exchangeGeneBits(a,b)
 	local geneBitListA = a.geneBitList
 	local geneBitListB = b.geneBitList
@@ -280,21 +280,20 @@ function t:exchangeGeneBits(a,b)
 	if count < 2 then return a,b end
 
 	-- 创建后来
-	local geneBitTypes = self.geneBitTypes
-	local aa = geneClass:create(count, geneBitTypes, self)
-	local bb = geneClass:create(count, geneBitTypes, self)
+	local aa = geneClass:create(self)
+	local bb = geneClass:create(self)
 	local geneBitListAA = aa.geneBitList
 	local geneBitListBB = bb.geneBitList
 
 	local rn = util:rand(2, count) -- 从哪里开始交换
 
 	for i=1,rn-1 do
-		geneBitListAA[i] = geneBitListA[i]
-		geneBitListBB[i] = geneBitListB[i]
+		cloneGeneBit(geneBitListA[i], geneBitListAA[i])
+		cloneGeneBit(geneBitListB[i], geneBitListBB[i])
 	end
 	for i=rn,count do 
-		geneBitListAA[i] = geneBitListB[i]
-		geneBitListBB[i] = geneBitListA[i]
+		cloneGeneBit(geneBitListB[i], geneBitListAA[i])
+		cloneGeneBit(geneBitListA[i], geneBitListBB[i])
 	end
 
 	return aa,bb

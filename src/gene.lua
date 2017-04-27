@@ -6,37 +6,34 @@ local gb = _G.gb
 local util = gb.util
 
 --
-function t:ctor(geneBitCount, types, population) -- length:geneBitCount
+function t:ctor(population) -- length:geneBitCount
+	-- 群组
+	self.population = population
+	local geneBitCount = population.geneBitCount
+	local generateGeneBitFunc = population.generateGeneBitFunc
+
 	-- 适应性值
 	self.fitness = 0
 
-	-- bit类型记录
-	--self.geneBitTypes = types -- 
-
 	-- 基因bit链
-	local typesCount = #types
 	local geneBitList = {}; self.geneBitList = geneBitList
 	for i=1,geneBitCount do
-		geneBitList[i] = util:rand(1,typesCount) -- 初始化都是随机的.
+		geneBitList[i] = generateGeneBitFunc() -- 初始化都是随机的.
 	end
-
-	-- 群组
-	self.population = population
 end
 
 -- 更新适应性值
 function t:updateFitness() -- func:打分函数
-	local func = self.population.fitnessCaculate
+	local func = self.population.fitnessMeasurementFunc
 	self.fitness = func(self.geneBitList)
 end
 
 -- 变异
 function t:mutate() -- func:打分函数
 	local population = self.population
-	local geneBitTypes = population.geneBitTypes
+	local mutateGeneBitFunc = population.mutateGeneBitFunc
 	local fold = 1000
 	local mutationRate = math.floor(population.mutationRate*fold+0.00001) 
-	local bitTypeCount = #geneBitTypes
 
 	local rn
 	local geneBitList = self.geneBitList
@@ -48,10 +45,9 @@ function t:mutate() -- func:打分函数
 		if rn <= mutationRate then
 			-- print("----------------- rn == "..rn)
 			-- print("----------------- mutationRate == "..mutationRate)
-			geneBitList[i] = util:rand(1,bitTypeCount)
+			mutateGeneBitFunc(geneBitList[i])
 		end
 	end
-
 end
 
 return t

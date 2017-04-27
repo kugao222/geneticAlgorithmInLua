@@ -5,6 +5,7 @@ require("src/init")
 local gb = _G.gb
 local populationClass = gb.populationClass
 local math = _G.math
+local util = gb.util
 
 -- 地图定义 --
 -- local width = 15
@@ -76,7 +77,7 @@ local function colorPath(list, newMap)
 	local curPos = {x=posStart.x, y=posStart.y}
 	local farestPos = {x=posStart.x, y=posStart.y}
 	for i,v in ipairs(list) do
-		curPos = getNextPos(curPos, v)
+		curPos = getNextPos(curPos, v[1])
 		if isLocationValid(curPos) then
 			farestPos.x = curPos.x
 			farestPos.y = curPos.y
@@ -90,18 +91,23 @@ end
 
 --
 local function main()
-	-- 群组个数
-	local populationSize = 140
-
 	-- 基因定义(基因长度/bit的类型/适应性)
-	local geneBitCount = 35
-	local geneBitTypes = {1,2,3,4} -- 上下左右
-	local function fitnessCaculate(geneBitList) -- geneBitList:70
+	local geneBitValueRange = {1,2,3,4} -- 上下左右
+	local function generateGeneBitFunc() -- 基因bit内部是数组
+		local t = {util:rand(geneBitValueRange[1],geneBitValueRange[4])}
+		return t
+	end
+	-- 2. 基因变异
+	local function mutateGeneBitFunc(t)
+		t[1] = util:rand(geneBitValueRange[1],geneBitValueRange[4])
+	end
+	-- 3. 适应性度量
+	local function fitnessMeasurementFunc(geneBitList) -- geneBitList:70
 		local curPos = {x=posStart.x, y=posStart.y}
 		local farestPos = {x=posStart.x, y=posStart.y} -- 记录最远的点
 		local v
-		for i=1,geneBitCount do
-			v = geneBitList[i]
+		for i=1,#geneBitList do
+			v = geneBitList[i][1]
 
 			curPos = getNextPos(curPos, v)
 			--dump(curPos)
@@ -140,13 +146,21 @@ local function main()
 		return 1/(dx+dy+1)
 	end
 
-	-- 跳出条件
-	local jumpOutFitnessLevel = 1.0
+	local t = {
+		-- 人口
+		population = 140,
+		-- 基因
+		geneBitCount = 35,-- 长度
+		generateGeneBitFunc = generateGeneBitFunc,
+		mutateGeneBitFunc = mutateGeneBitFunc,
+		fitnessMeasurementFunc = fitnessMeasurementFunc,
+	}
 
 	-- 
-	local population = populationClass:create(populationSize, geneBitCount,geneBitTypes,fitnessCaculate)
+	local population = populationClass:create(t)
 
-	--
+	-- 跳出条件
+	local jumpOutFitnessLevel = 1.0	
 	local r = false
 	for i=1,500 do
 		r = population:epoch(jumpOutFitnessLevel)
